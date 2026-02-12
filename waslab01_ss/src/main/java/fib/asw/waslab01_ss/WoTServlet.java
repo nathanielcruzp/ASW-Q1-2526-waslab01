@@ -20,9 +20,29 @@ public class WoTServlet extends HttpServlet {
     	tweetDAO = new TweetDAO((java.sql.Connection) this.getServletContext().getAttribute("connection"));
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	private void printPLAINresults(HttpServletResponse response, List<Tweet> tweets) throws IOException {
+        response.setContentType("text/plain; charset=UTF-8");
+        PrintWriter out = response.getWriter();
 
+        for (Tweet tweet : tweets) {
+            out.println(
+                    tweet.getCreated_at() + " (tweet.id = " + tweet.getTwid() + "): " +
+                            tweet.getAuthor() + " wrote \"" + tweet.getText() + "\""
+            );
+        }
+
+        out.close();
+    }
+
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         List<Tweet> tweets = tweetDAO.getAllTweets();
+
+        String accept = request.getHeader("Accept");
+        if (accept != null && accept.contains("text/plain")) {
+            printPLAINresults(response, tweets);
+        } else {
+            printHTMLresults(response, tweets);
+        }
 
         printHTMLresults(response, tweets);
 
